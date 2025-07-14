@@ -17,11 +17,12 @@ enum ProductStatusEnum: string
     }
 
 
-    public static function color(): array
+    public static function colors(): array
     {
         return [
-            'gray' => self::Draft->value,
-            'success' => self::Published->value,
+            self::Draft->value => 'gray',
+            self::Published->value => 'success',
         ];
     }
+
 }

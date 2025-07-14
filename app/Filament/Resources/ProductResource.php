@@ -20,6 +20,8 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -107,10 +109,8 @@ class ProductResource extends Resource
                     ->integer(),
 
                 Select::make('status')
-                    ->options([
-                        ProductStatusEnum::label()
-                    ])
-                    ->default(ProductStatusEnum::Draft->value)
+                    ->options(ProductStatusEnum::label())
+                    ->default(ProductStatusEnum::Draft)
                     ->required(),
 
 
@@ -125,10 +125,27 @@ class ProductResource extends Resource
     {
         return $table
             ->columns([
-                //
+                TextColumn::make('title')
+                    ->words(10)
+                    ->sortable()
+                    ->searchable(),
+
+                TextColumn::make('status')
+                    ->badge()
+                    ->color(fn(string $state): string => ProductStatusEnum::colors()[$state]),
+
+                TextColumn::make('department.name'),
+                TextColumn::make('category.name'),
+                TextColumn::make('created_at')
+                    ->dateTime(),
+
+
             ])
             ->filters([
-                //
+                SelectFilter::make('status')
+                    ->options(ProductStatusEnum::label()),
+                SelectFilter::make('department_id')
+                    ->relationship('department', 'name')
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -157,9 +174,10 @@ class ProductResource extends Resource
         ];
     }
 
-    public static function canViewAny(): bool{
+    public static function canViewAny(): bool
+    {
 
-        $user=Filament::auth()->user();
+        $user = Filament::auth()->user();
         return $user && $user->hasRole(RolesEnum::Vendor);
     }
 }
