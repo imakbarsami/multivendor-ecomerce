@@ -5,6 +5,8 @@ namespace App\Filament\Resources;
 use App\Enums\ProductStatusEnum;
 use App\Enums\RolesEnum;
 use App\Filament\Resources\ProductResource\Pages;
+use App\Filament\Resources\ProductResource\Pages\EditProduct;
+use App\Filament\Resources\ProductResource\Pages\ProductImages;
 use App\Filament\Resources\ProductResource\RelationManagers;
 use App\Models\Category;
 use App\Models\Department;
@@ -27,12 +29,18 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Str;
 use function Laravel\Prompts\search;
+use Filament\Resources\Pages\Page;
+use Filament\Pages\SubNavigationPosition;
+
 
 class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::End;
+
 
     public static function form(Form $form): Form
     {
@@ -112,12 +120,6 @@ class ProductResource extends Resource
                     ->options(ProductStatusEnum::label())
                     ->default(ProductStatusEnum::Draft)
                     ->required(),
-
-
-
-
-
-
             ]);
     }
 
@@ -165,12 +167,23 @@ class ProductResource extends Resource
         ];
     }
 
+    public static function getRecordSubNavigation(Page $page): array
+    {
+        return
+            $page->generateNavigationItems([
+                EditProduct::class,
+                ProductImages::class
+            ]);
+
+    }
+
     public static function getPages(): array
     {
         return [
             'index' => Pages\ListProducts::route('/'),
             'create' => Pages\CreateProduct::route('/create'),
             'edit' => Pages\EditProduct::route('/{record}/edit'),
+            'images' => Pages\ProductImages::route('/{record}/images'),
         ];
     }
 
