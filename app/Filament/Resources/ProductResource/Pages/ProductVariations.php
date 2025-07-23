@@ -86,9 +86,36 @@ class ProductVariations extends EditRecord
     }
 
 
-    private function cartesianProduct():array{
+    private function cartesianProduct($variationTypes,$defaultQuantity=null,$defaultPrice=null):array{
 
-        return [];
+        $result = [[]];
+        foreach($variationTypes as $index=>$variationType){
+
+            $temp=[];
+            foreach($variationType->options as $option){
+
+                foreach($result as $combination){
+                    $newCombination = $combination+[
+                        'variation_type_'.($variationType->id)=>[
+                            'id'=>$option->id,
+                            'name'=>$option->name,
+                            'label'=>$variationType->name,
+                        ],
+                    ];
+                    $temp[]=$newCombination;
+                }
+            }
+            $result=$temp;
+        }
+
+        foreach($result as &$combination){
+            if(count($combination)===count($variationTypes)){
+                $combination['quantity']=$defaultQuantity;
+                $combination['price']=$defaultPrice;
+            }
+        }
+        return $result;
+        
     }
 
     protected function getRedirectUrl(): string
