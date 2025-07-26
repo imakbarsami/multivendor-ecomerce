@@ -6,6 +6,7 @@ use App\Enums\ProductVariationTypeEnum;
 use App\Filament\Resources\ProductResource;
 use Filament\Actions;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
@@ -22,8 +23,44 @@ class ProductVariations extends EditRecord
 
     public function form(Form $form): Form
     {
+        $types=$this->record->variationTypes;
+        
+        $fields=[];
+
+        foreach($types as $type){
+            $fields[]=TextInput::make('variation_type_'.($type->id).'.id')
+            ->hidden();
+
+
+            $fields[]=TextInput::make('variation_type_'.($type->id).'.name')
+            ->label($type->name);
+
+
+        }
+
+
+
         return $form
             ->schema([
+
+                Repeater::make('variations')
+                ->label(false)
+                ->collapsible()
+                ->addable(false)
+                ->defaultItems(1)
+                ->schema([
+                    Section::make()
+                    ->schema($fields)
+                    ->columns(3),
+                TextInput::make('quantity')
+                   ->label('Quantity')
+                    ->numeric(),
+                
+                TextInput::make('price')
+                ->label('Price')
+                ])
+                ->columns(2)
+                ->columnSpan(2)
 
             ]);
 
