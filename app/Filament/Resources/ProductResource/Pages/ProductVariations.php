@@ -5,6 +5,7 @@ namespace App\Filament\Resources\ProductResource\Pages;
 use App\Enums\ProductVariationTypeEnum;
 use App\Filament\Resources\ProductResource;
 use Filament\Actions;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
@@ -12,6 +13,7 @@ use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Database\Eloquent\Model;
 
 class ProductVariations extends EditRecord
 {
@@ -19,53 +21,56 @@ class ProductVariations extends EditRecord
 
     protected static ?string $title = 'Variations';
 
-    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
-
+    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';   
     public function form(Form $form): Form
     {
-        $types=$this->record->variationTypes;
-        
-        $fields=[];
-
-        foreach($types as $type){
-            $fields[]=TextInput::make('variation_type_'.($type->id).'.id')
-            ->hidden();
-
-
-            $fields[]=TextInput::make('variation_type_'.($type->id).'.name')
-            ->label($type->name);
-
-
+        $types = $this->record->variationTypes;
+    
+        $fields = [];
+    
+        foreach ($types as $type) {
+            $typeId = $type->id;
+            $key = 'variation_type_' . $typeId;
+    
+            $fields[] = Hidden::make("$key.id")
+                ->default(fn ($get) => $get("$key.id")); 
+    
+            $fields[] = TextInput::make("$key.name")
+                ->label($type->name)
+                ->default(fn ($get) => $get("$key.name")); 
         }
-
-
-
-        return $form
-            ->schema([
-
-                Repeater::make('variations')
+    
+        return $form->schema([
+            Repeater::make('variations')
                 ->label(false)
                 ->collapsible()
                 ->addable(false)
                 ->defaultItems(1)
+                ->default(fn () => $this->cartesianProduct(
+                    $this->record->variationTypes,
+                    $this->record->quantity,
+                    $this->record->price
+                ))
                 ->schema([
                     Section::make()
-                    ->schema($fields)
-                    ->columns(3),
-                TextInput::make('quantity')
-                   ->label('Quantity')
-                    ->numeric(),
-                
-                TextInput::make('price')
-                ->label('Price')
+                        ->schema($fields)
+                        ->columns(3),
+    
+                    TextInput::make('quantity')
+                        ->label('Quantity')
+                        ->numeric(),
+    
+                    TextInput::make('price')
+                        ->formatStateUsing(fn ($state) => number_format($state, 2))
+                        ->label('Price'),
                 ])
                 ->columns(2)
-                ->columnSpan(2)
-
-            ]);
-
+                ->columnSpan(2),
+        ]);
     }
-
+    
+   
+   
     protected function getHeaderActions(): array
     {
         return [
@@ -152,8 +157,50 @@ class ProductVariations extends EditRecord
             }
         }
         return $result;
-        
+
     }
+
+    
+    protected function mutateFormDataBeforeSave(array $data): array{
+
+        $formattedData=[];
+
+        foreach($data['variations'] as $option){
+            $variationTypeOptionIds=[];
+
+            foreach($this->record->variationTypes as $i =>$variationType){
+
+                $variationTypeOptionIds[]=$option[
+                    'variation_type_'.($variationType->id)
+                ]['id'];
+            }
+
+            $quantity=$option['quantity'];
+            $price=$option['price'];
+
+            $formattedData[]=[
+                'variation_type_option_ids'=>$variationTypeOptionIds,
+                'quantity'=>$quantity,
+                'price'=>$price,
+            ];
+        }
+
+        $data['variations']=$formattedData;
+
+        return $data;
+    }
+
+
+    protected function handleRecordUpdate(Model $record, array $data): Model {
+      
+        $variations=$data['variations'];
+        unset($data['variations']);
+  
+        $record->variations()->delete();
+        $record->variations()->createMany($variations);
+        return $record;  
+    }
+
 
     protected function getRedirectUrl(): string
     {
