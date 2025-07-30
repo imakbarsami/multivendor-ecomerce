@@ -112,6 +112,7 @@ class ProductVariations extends EditRecord
 
             if (!empty($match)) {
                 $existingEntry = reset($match);
+                $product['id']=$existingEntry['id'];
                 $product['quantity'] = $existingEntry['quantity'];
                 $product['price'] = $existingEntry['price'];
             } else {
@@ -179,6 +180,7 @@ class ProductVariations extends EditRecord
             $price=$option['price'];
 
             $formattedData[]=[
+                'id'=>$option['id'],
                 'variation_type_option_ids'=>$variationTypeOptionIds,
                 'quantity'=>$quantity,
                 'price'=>$price,
@@ -195,15 +197,20 @@ class ProductVariations extends EditRecord
       
         $variations=$data['variations'];
         unset($data['variations']);
+        //dd($variations);
   
-        $record->variations()->delete();
-        $record->variations()->createMany($variations);
+        $variations=collect($variations)->map(function($variation){
+           
+            return [
+                'id'=>$variation['id'],
+                'variation_type_option_ids'=>json_encode($variation['variation_type_option_ids']),
+                'quantity'=>$variation['quantity'],
+                'price'=>$variation['price'],
+            ];
+        })->toArray();
+        
+        $record->variations()->upsert($variations,['id'],['variation_type_option_ids','quantity','price']);
         return $record;  
     }
 
-
-    protected function getRedirectUrl(): string
-    {
-        return $this->getResource()::getUrl('index');
-    }
 }
