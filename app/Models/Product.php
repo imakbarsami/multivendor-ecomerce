@@ -57,4 +57,8 @@ class Product extends Model implements HasMedia
     public function variations():HasMany{
         return $this->hasMany(ProductVariation::class,'product_id');
     }
+
+    public function user():BelongsTo{
+        return $this->belongsTo(User::class,'created_by');
+    }
 }
