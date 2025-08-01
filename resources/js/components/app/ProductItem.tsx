@@ -1,5 +1,6 @@
 import { Product } from "@/types"
 import { Link } from "@inertiajs/react"
+import { CurrencyFomatter } from "../core/CurrencyFomatter"
 
 
 export default function ProductItem({ product }: { product: Product }) {
@@ -25,7 +26,7 @@ export default function ProductItem({ product }: { product: Product }) {
                     <div className="card-actions items-center justify-between mt-3">
                         <button className="btn btn-primary">Add to Cart</button>
                         <span className="text-2xl">
-                            ${product.price}
+                            <CurrencyFomatter amount={product.price} currency="BDT"/>
                         </span>
                     </div>
                 </div>     
