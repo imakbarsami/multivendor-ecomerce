@@ -41,6 +41,19 @@ export interface User {
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
 }
+export type VariationTypeOption={
+    id:number;
+    name:string
+    image:Image[]
+    type:VariationType
+}
+
+export type VariationType={
+    id:number;
+    name:string
+    type:'select' | 'radio' | 'image';
+    options:VariationTypeOption[]
+}
 
 export type Product={
     id:number;
@@ -49,6 +62,9 @@ export type Product={
     price:number;
     quantity:number;
     image:string;
+    images:Image[];
+    description:string;
+    short_description:string;
     user:{
         id:number;
         name:string
@@ -57,6 +73,16 @@ export type Product={
         id:number;
         name:string
     };
+    variationTypes:VariationType[];
+    variations:Array<
+    {
+        id:number;
+        variation_type_option_ids:number[];
+        quantity:number;
+        price:number;
+    }
+    >
+    
 }
 
 export type PaginationProps<T>={
@@ -79,3 +105,13 @@ export type PageProps<T = {}> = T & {
       routes: Record<string, any>
     }
   }
+
+
+export type Image={
+    id:number;
+    thumb:string;
+    small:string;
+    medium:string;
+    large:string;
+
+}

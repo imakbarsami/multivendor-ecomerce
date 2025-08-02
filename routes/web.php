@@ -6,7 +6,7 @@ use Inertia\Inertia;
 
 
 Route::get('/',[ProductController::class,'home'])->name('home');
-Route::get('/product/{product}',[ProductController::class,'show'])->name('product.show');
+Route::get('/product/{product:slug}',[ProductController::class,'show'])->name('product.show');
 
 
 
