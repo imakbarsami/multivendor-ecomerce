@@ -44,7 +44,7 @@ export interface User {
 export type VariationTypeOption={
     id:number;
     name:string
-    image:Image[]
+    images:Image[]
     type:VariationType
 }
 
